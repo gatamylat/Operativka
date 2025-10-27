@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оперативка Производство</title>
+    <link rel="stylesheet" href="production.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Оперативка Производство</h1>
+            <div class="header-actions">
+                <button id="exportJsonBtn" class="btn btn-secondary" title="Экспорт всех данных в JSON">💾 Экспорт</button>
+                <button id="importJsonBtn" class="btn btn-secondary" title="Импорт данных из JSON">📂 Импорт</button>
+                <input type="file" id="importJsonFile" accept=".json" style="display: none;">
+                <button id="clearDataBtn" class="btn btn-danger" title="Очистить все данные приложения">🗑️ Очистить данные</button>
+                <button id="copyToMessengerBtn" class="btn btn-secondary">📱 Копировать в мессенджер</button>
+                <button id="printBtn" class="btn btn-secondary">🖨️ Печать</button>
+                <span id="lastUpdate" class="last-update"></span>
+            </div>
+        </header>
+
+        <!-- Панель уведомлений -->
+        <div id="notificationsBanner" class="notifications-banner"></div>
+
+        <!-- Навигация -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="input">Быстрый ввод</button>
+            <button class="tab-btn" data-tab="tasks">Задачи</button>
+            <button class="tab-btn" data-tab="shipments">Отгрузки</button>
+            <button class="tab-btn" data-tab="installations">Монтажи</button>
+        </nav>
+
+        <!-- Вкладка: Быстрый ввод -->
+        <div id="input" class="tab-content active">
+            <div class="input-form">
+                <h2>Быстрый ввод оперативки</h2>
+                
+                <!-- 1. Задачи по объекту -->
+                <div class="form-section">
+                    <h3>1. Задачи по объекту</h3>
+                    <div class="form-group">
+                        <label>Название проекта:</label>
+                        <input type="text" id="projectName" placeholder="Доминанта доделки, Петровская доминанта...">
+                    </div>
+                    <div class="form-group">
+                        <label>Задачи (каждая с новой строки):</label>
+                        <textarea id="projectTasks" rows="6" placeholder="Фасады на кухню - сделать русты - докрасить.
+Полка на кухню - Полка между ДШ и Микроволновкой толщина 12мм
+Магнит на фасад мусорки
+Регулировка фасадов холодильника"></textarea>
+                    </div>
+                    <button class="btn btn-secondary btn-add" onclick="ProductionApp.addProjectSection()">+ Добавить еще проект</button>
+                    <div id="additionalProjects"></div>
+                </div>
+
+                <!-- 2. Столяра -->
+                <div class="form-section">
+                    <h3>2. Столяра</h3>
+                    <div class="form-group">
+                        <label>Задачи столяров (Имя: задача1, задача2...):</label>
+                        <textarea id="carpenterTasks" rows="8" placeholder="Шероз:
+Гардероб новая рига
+Тумбы в ШР
+
+Антон:
+Шкаф в СУ лариса радиус
+Шкаф за кроватью Шидловский"></textarea>
+                    </div>
+                </div>
+
+                <!-- 3. Малярка -->
+                <div class="form-section">
+                    <h3>3. Малярка</h3>
+                    <div class="form-group">
+                        <label>Задачи малярки (каждая с новой строки):</label>
+                        <textarea id="paintingTasks" rows="4" placeholder="Кухня Левел
+Фасады Доминанта
+Двери Охтинский парк"></textarea>
+                    </div>
+                </div>
+
+                <!-- 4. Сборщики -->
+                <div class="form-section">
+                    <h3>4. Сборщики</h3>
+                    <div class="form-group">
+                        <label>Задачи сборщиков (Имя: задача1, задача2...):</label>
+                        <textarea id="assemblerTasks" rows="8" placeholder="Максим:
+Шкаф в прихожую Муравьев - дособрать, разбирать в отгрузку
+переделка бара (охтинский парк) - добавить 3ею петлю - К среде
+
+Владимир:
+Кухня лобачева 1812
+Фасады новая рига - ждем керамику"></textarea>
+                    </div>
+                </div>
+
+                <!-- 5. Отгрузки -->
+                <div class="form-section">
+                    <h3>5. Отгрузки</h3>
+                    <div class="form-group">
+                        <label>Список отгрузок (каждая с новой строки):</label>
+                        <textarea id="shipmentsInput" rows="6" placeholder="Жизневская - 5 ноября (Иваны) + монтаж Денис
+Кухня лобачева + витрины - 6-7 ноября + монтаж (Иваны)
+Муравьев - 7 или 10 ноября + монтаж Денис"></textarea>
+                    </div>
+                </div>
+
+                <!-- 6. План отгрузки -->
+                <div class="form-section">
+                    <h3>6. План отгрузки</h3>
+                    <div class="form-group">
+                        <label>План отгрузок по дням:</label>
+                        <textarea id="shipmentsPlan" rows="10" placeholder="ПОНЕДЕЛЬНИК 27/10
+- Рылеева - остатки панелей
+- Саперный 29 - витрина, шкаф в прихожей
+- Снабжение
+
+ВТОРНИК 28/10
+- Ганино - переделанные детали
+- Репино парк - полки и отливы"></textarea>
+                    </div>
+                </div>
+
+                <!-- 7. План монтажа -->
+                <div class="form-section">
+                    <h3>7. План монтажа</h3>
+                    <div class="form-group">
+                        <label>Монтажи по дням (группы с датами):</label>
+                        <textarea id="installationPlan" rows="12" placeholder="БЕЗ ДАТЫ
+- Сабиров
+- Токсово
+
+ПОНЕДЕЛЬНИК 27/10
+- Шидловский (Саперный) - Паша и Николай
+
+ВТОРНИК 28/10
+- Ганино - Паша и Николай
+
+СРЕДА 29/10
+- Репино парк - Паша и Николай"></textarea>
+                    </div>
+                </div>
+
+                <div class="input-actions">
+                    <button id="clearFormBtn" class="btn btn-secondary">🗑️ Очистить форму</button>
+                    <button id="importBtn" class="btn btn-primary">⚡ Импортировать все задачи</button>
+                </div>
+                <div id="parseResult" class="parse-result"></div>
+            </div>
+
+            <div class="recent-notes">
+                <h3>Последние оперативки</h3>
+                <div id="notesList"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка: Задачи -->
+        <div id="tasks" class="tab-content">
+            <div class="tasks-header">
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">Все</button>
+                    <button class="filter-btn" data-filter="in_progress">В работе</button>
+                    <button class="filter-btn" data-filter="waiting">Ждем материалы</button>
+                    <button class="filter-btn" data-filter="ready">Готово</button>
+                    <button class="filter-btn" data-filter="done">Завершено</button>
+                </div>
+                <button id="addTaskBtn" class="btn btn-primary">+ Добавить задачу</button>
+            </div>
+
+            <div id="tasksList" class="tasks-list">
+                <!-- Список задач по исполнителям -->
+            </div>
+        </div>
+
+        <!-- Вкладка: Отгрузки -->
+        <div id="shipments" class="tab-content">
+            <div class="shipments-header">
+                <h2>Отгрузки</h2>
+                <div class="header-controls">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="shipmentsCalendarViewCheckbox">
+                        <span>График отгрузок</span>
+                    </label>
+                    <button id="copyShipmentsBtn" class="btn btn-secondary">📱 Копировать план</button>
+                    <button id="addShipmentBtn" class="btn btn-primary">+ Добавить отгрузку</button>
+                </div>
+            </div>
+            <div id="shipmentsList" class="shipments-list">
+                <!-- Список отгрузок -->
+            </div>
+        </div>
+
+        <!-- Вкладка: Монтажи -->
+        <div id="installations" class="tab-content">
+            <div class="installations-header">
+                <h2>План монтажа</h2>
+                <div class="header-controls">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="overlayShipmentsCheckbox">
+                        <span>Наслоить отгрузки</span>
+                    </label>
+                    <button id="copyInstallationsBtn" class="btn btn-secondary">📱 Копировать план</button>
+                    <button id="addInstallationBtn" class="btn btn-primary">+ Добавить монтаж</button>
+                    <div class="last-update">Обновлено: <span id="installationsLastUpdate">—</span></div>
+                </div>
+            </div>
+            <div id="installationsList" class="installations-list">
+                <!-- Список монтажей по дням -->
+            </div>
+        </div>
+
+        <!-- Модальное окно: Редактирование задачи -->
+        <div id="taskModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="taskModalTitle">Новая задача</h2>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label>Проект</label>
+                        <input type="text" id="taskProject" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Задача</label>
+                        <textarea id="taskTitle" rows="3" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Исполнитель</label>
+                            <select id="taskAssignee" required>
+                                <option value="">Выберите...</option>
+                                <option value="Максим">Максим</option>
+                                <option value="Владимир">Владимир</option>
+                                <option value="Вова">Вова</option>
+                                <option value="Денис">Денис</option>
+                                <option value="Шероз">Шероз</option>
+                                <option value="Антон">Антон</option>
+                                <option value="Артем">Артем</option>
+                                <option value="Константин">Константин</option>
+                                <option value="Андрей">Андрей</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Статус</label>
+                            <select id="taskStatus" required>
+                                <option value="in_progress">В работе</option>
+                                <option value="waiting">Ожидание</option>
+                                <option value="ready">Готово</option>
+                                <option value="done">Завершено</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Дедлайн</label>
+                            <input type="date" id="taskDeadline">
+                        </div>
+                        <div class="form-group">
+                            <label>Приоритет</label>
+                            <select id="taskPriority">
+                                <option value="normal">Обычный</option>
+                                <option value="high">Высокий</option>
+                                <option value="low">Низкий</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Блокер (что ждем)</label>
+                        <input type="text" id="taskBlocker" placeholder="ЛДСП, металл, согласование...">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelTaskBtn">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно: Отгрузка -->
+        <div id="shipmentModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="shipmentModalTitle">Новая отгрузка</h2>
+                <form id="shipmentForm">
+                    <div class="form-group">
+                        <label>Проект</label>
+                        <input type="text" id="shipmentProject" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Дата отгрузки</label>
+                        <input type="date" id="shipmentDate" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Сборщик</label>
+                            <input type="text" id="shipmentAssembler" placeholder="Иваны, Паша + Коля...">
+                        </div>
+                        <div class="form-group">
+                            <label>Монтажник</label>
+                            <input type="text" id="shipmentInstaller" placeholder="Денис, Паша...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Заметки</label>
+                        <textarea id="shipmentNotes" rows="2"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelShipmentBtn">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования монтажа -->
+        <div id="installationModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Редактирование монтажа</h2>
+                <form id="installationForm">
+                    <div class="form-group">
+                        <label>Проект</label>
+                        <input type="text" id="installationProject" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Дата (оставьте пустым для "БЕЗ ДАТЫ")</label>
+                        <input type="date" id="installationDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Монтажник</label>
+                        <input type="text" id="installationInstaller" placeholder="Паша и Николай...">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelInstallationBtn">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB для мобильных устройств -->
+    <div id="fabContainer" class="fab-container">
+        <button id="fabButton" class="fab-button">+</button>
+        <div id="fabMenu" class="fab-menu">
+            <div class="fab-menu-section">
+                <div class="fab-menu-title">Добавить</div>
+                <button class="fab-menu-item" data-action="addTask">
+                    <span class="fab-icon">📋</span>
+                    <span>Задачу</span>
+                </button>
+                <button class="fab-menu-item" data-action="addShipment">
+                    <span class="fab-icon">📦</span>
+                    <span>Отгрузку</span>
+                </button>
+                <button class="fab-menu-item" data-action="addInstallation">
+                    <span class="fab-icon">🔧</span>
+                    <span>Монтаж</span>
+                </button>
+            </div>
+            <div class="fab-menu-section">
+                <div class="fab-menu-title">Настройки</div>
+                <button class="fab-menu-item" data-action="export">
+                    <span class="fab-icon">💾</span>
+                    <span>Экспорт</span>
+                </button>
+                <button class="fab-menu-item" data-action="import">
+                    <span class="fab-icon">📂</span>
+                    <span>Импорт</span>
+                </button>
+                <button class="fab-menu-item" data-action="copyAll">
+                    <span class="fab-icon">📱</span>
+                    <span>Копировать всё</span>
+                </button>
+                <button class="fab-menu-item" data-action="print">
+                    <span class="fab-icon">🖨️</span>
+                    <span>Печать</span>
+                </button>
+                <button class="fab-menu-item fab-menu-danger" data-action="clear">
+                    <span class="fab-icon">🗑️</span>
+                    <span>Очистить данные</span>
+                </button>
+            </div>
+            <div class="fab-menu-section" id="fabTelegramSection">
+                <div class="fab-menu-title">В Telegram</div>
+                <button class="fab-menu-item" data-action="copyPlan">
+                    <span class="fab-icon">📱</span>
+                    <span id="fabCopyPlanText">Копировать план</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Версия для печати -->
+    <div id="printVersion" class="print-version">
+        <div class="print-header">
+            <h1>Оперативка Производство</h1>
+            <div class="print-date"></div>
+        </div>
+        <div class="print-content">
+            <!-- Генерируется динамически -->
+        </div>
+    </div>
+
+    <script src="parser.js"></script>
+    <script src="production.js"></script>
+    <script src="form-handler.js"></script>
+</body>
+</html>
